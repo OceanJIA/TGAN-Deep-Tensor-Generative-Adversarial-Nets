@@ -1,21 +1,15 @@
 import torch
 import torch.autograd as autograd
 import numpy as np
-from data import mnist
 from data import cifar10
 from scipy.misc import imsave
-import matplotlib.pyplot as plt
 from tensorGen import generateTensor
 
 
 def dataset_iterator(args):
-    if args.dataset == 'mnist':
-        train_gen, dev_gen, test_gen = mnist.load(args.batch_size, args.batch_size)
-    if args.dataset == 'cifar10':
-        data_dir = './images/cifar-10-batches-py'
-        train_gen, dev_gen = cifar10.load(args.batch_size, data_dir)
-        test_gen = None
-
+    data_dir = './images/cifar-10-batches-py'
+    train_gen, dev_gen = cifar10.load(args.batch_size, data_dir)
+    test_gen = None
     return (train_gen, dev_gen, test_gen)
 
 
@@ -46,11 +40,8 @@ def generate_image(iter, model, save_path, args):
     fixed_noise_128 = generateTensor(128).cuda()
     noisev = autograd.Variable(fixed_noise_128, volatile=True)
     samples = model(noisev, True)
-    if model._name == 'mnistG':
-        samples = samples.view(batch_size, 28, 28)
-    else:
-        samples = samples.view(-1, *(datashape[::-1]))
-        samples = samples.mul(0.5).add(0.5)
+    samples = samples.view(-1, *(datashape[::-1]))
+    samples = samples.mul(0.5).add(0.5)
     samples = samples.cpu().data.numpy()
     save_images(samples, save_path+'/samples_{}.jpg'.format(iter))
 
@@ -61,11 +52,8 @@ def generate_MidImage(iter, model, model1, model2, save_path, args):
     fixed_noise_128 = generateTensor(128).cuda()
     noisev = autograd.Variable(fixed_noise_128, volatile=True)
     samples = model2(model1(model(noisev, True), True))
-    if model._name == 'mnistG':
-        samples = samples.view(batch_size, 28, 28)
-    else:
-        samples = samples.view(-1, *(datashape[::-1]))
-        samples = samples.mul(0.5).add(0.5)
+    samples = samples.view(-1, *(datashape[::-1]))
+    samples = samples.mul(0.5).add(0.5)
     samples = samples.cpu().data.numpy()
     save_images(samples, save_path+'/samples_mid_{}.jpg'.format(iter))
 
@@ -76,18 +64,14 @@ def generate_HDImage(iter, model, model1, model2, model3, model4, save_path, arg
     fixed_noise_128 = generateTensor(128).cuda()
     noisev = autograd.Variable(fixed_noise_128, volatile=True)
     samples = model4(model3(model2(model1(model(noisev, True), True)), True))
-    if model._name == 'mnistG':
-        samples = samples.view(batch_size, 28, 28)
-    else:
-        samples = samples.view(-1, *(datashape[::-1]))
-        samples = samples.mul(0.5).add(0.5)
+    samples = samples.view(-1, *(datashape[::-1]))
+    samples = samples.mul(0.5).add(0.5)
     samples = samples.cpu().data.numpy()
     save_images(samples, save_path+'/samples_hd_{}.jpg'.format(iter))
 
 
 def save_images(X, save_path, use_np=False):
     # [0, 1] -> [0,255]
-    plt.ion()
     if not use_np:
         if isinstance(X.flatten()[0], np.floating):
             X = (255.99*X).astype('uint8')
@@ -110,10 +94,6 @@ def save_images(X, save_path, use_np=False):
         j = int(n/nw)
         i = int(n%nw)
         img[j*h:j*h+h, i*w:i*w+w] = x
-
-    plt.imshow(img, cmap='gray')
-    plt.draw()
-    plt.pause(0.001)
 
     if use_np:
         np.save(save_path, img)

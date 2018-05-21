@@ -50,12 +50,10 @@ class BSDDataLoader():
             self.batchSize = batch_size
             self.gen = utils.inf_train_gen(train_gen)
         elif dataType == 'PASCAL':
-            self.dataPath = './pascal_vol/VOCdevkit/VOC2012/'
+            self.dataPath = './VOCdevkit/VOC2012/'
             self.imgList = []
-            for line in open(self.dataPath + 'ImageSets/Main/boat_trainval.txt'):
-                image, num = line.split()
-                if int(num) == 1:
-                    self.imgList.append(image)
+            for line in open(self.dataPath + 'ImageSets/Main/trainval.txt'):
+                self.imgList.append(line[0:-1])
 
             self.batchSize = batch_size
             self.len = len(self.imgList)

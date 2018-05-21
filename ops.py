@@ -10,8 +10,11 @@ def calc_gradient_penalty(args, model, real_data, gen_data):
     batch_size = args.batch_size
     datashape = model.shape
     alpha = torch.rand(batch_size, 1)
-    alpha = alpha.expand(batch_size, int(real_data.nelement()/batch_size))
-    alpha = alpha.contiguous().view(batch_size, *(datashape[::-1])).cuda()
+    if args.dataset == 'mnist':
+        alpha = alpha.expand(real_data.size()).cuda()
+    else:
+        alpha = alpha.expand(batch_size, int(real_data.nelement()/batch_size))
+        alpha = alpha.contiguous().view(batch_size, *(datashape[::-1])).cuda()
     interpolates = alpha * real_data + ((1 - alpha) * gen_data)
     interpolates = interpolates.cuda()
     interpolates = autograd.Variable(interpolates, requires_grad=True)
